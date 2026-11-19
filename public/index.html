@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=1920, height=1080, initial-scale=1.0">
+  <title>Dota 2 Tactical Overlay - Standalone & OBS</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Teko:wght@600;700&family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script>if (typeof io === 'undefined') document.write('<script src="https://cdn.socket.io/4.7.5/socket.io.min.js"><\/script>');</script>
+</head>
+<body>
+  <div id="overlay-container">
+    
+    <!-- BANNER DE STATUS DO MODO ELETRON (MODO JOGO / MODO EDIÇÃO) -->
+    <div id="mode-banner" class="mode-banner hidden">
+      <div class="mode-banner-content">
+        <div class="mode-banner-top">
+          <div class="mode-tag edit-tag">🔧 MODO EDIÇÃO</div>
+          <div class="mode-hint">
+            Arraste painéis | Redimensione pelo canto <strong>◢</strong> | Clique em <strong>✕</strong> para retirar | Pressione <strong>Ctrl+Shift+E</strong> para travar
+          </div>
+          <div class="mode-banner-actions">
+            <button id="btn-toggle-voice" class="btn-tool" title="Ativar/Desativar narração por voz">🔊 Voz: ON</button>
+            <button id="btn-reset-layout" class="btn-tool" title="Restaurar posições, escalas e exibir todos os widgets">↺ Restaurar Padrão</button>
+            <button id="btn-lock-mode" class="btn-tool btn-primary-tool" title="Travar no Modo Jogo">🔒 Travar (Ctrl+Shift+E)</button>
+          </div>
+        </div>
+        
+        <!-- SELETOR RÁPIDO PARA REATIVAR WIDGETS OCULTOS -->
+        <div class="mode-widgets-bar">
+          <span class="widgets-label">Exibir / Ocultar Widgets:</span>
+          <button class="widget-chip active" id="chip-top-bar" data-widget-target="widget-top-bar"><span class="chip-status">✔</span> ⏰ Relógio</button>
+          <button class="widget-chip active" id="chip-player-stats" data-widget-target="widget-player-stats"><span class="chip-status">✔</span> ⚔️ KDA & Herói</button>
+          <button class="widget-chip active" id="chip-objectives" data-widget-target="widget-objectives"><span class="chip-status">✔</span> 👹 Objetivos</button>
+          <button class="widget-chip active" id="chip-farm-monitor" data-widget-target="widget-farm-monitor"><span class="chip-status">✔</span> 📊 Farm vs Immortal</button>
+          <button class="widget-chip active" id="chip-skill-build" data-widget-target="widget-skill-build"><span class="chip-status">✔</span> ⭐ Skill Build</button>
+          <button class="widget-chip active" id="chip-draft-counters" data-widget-target="widget-draft-counters"><span class="chip-status">✔</span> 🎭 Draft Counters</button>
+          <button class="widget-chip active" id="chip-toolbar" data-widget-target="streamer-toolbar"><span class="chip-status">✔</span> 🛠️ Controles</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TOAST RÁPIDO DO MODO JOGO -->
+    <div id="game-mode-toast" class="game-mode-toast hidden">
+      🎮 MODO JOGO ATIVO — Cliques atravessando para o Dota 2
+    </div>
+
+    <!-- MAIN MENU STANDBY BADGE (Quando fora de partida) -->
+    <div id="menu-standby-badge" class="menu-standby-badge hidden">
+      <span class="pulse-amber">●</span> Dota 2 no Menu Principal (Aguardando Partida...)
+    </div>
+
+    <!-- 1. TOP BAR: Tempo de Partida e Status (Draggable & Resizable) -->
+    <header class="draggable-widget in-game-widget top-bar" id="widget-top-bar" data-widget="top-bar">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-top-bar" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      <div class="match-clock-panel">
+        <div class="clock-icon" id="day-night-icon">☀️</div>
+        <div class="clock-content">
+          <span class="clock-label">TEMPO DE PARTIDA</span>
+          <span class="clock-value" id="game-clock">00:00</span>
+        </div>
+        <div class="match-status-badge" id="match-status">AGUARDANDO DOTA 2</div>
+      </div>
+    </header>
+
+    <!-- 2. RIGHT WIDGET: Card de Performance do Jogador (KDA, GPM, XPM, CS) -->
+    <section class="draggable-widget in-game-widget player-stats-widget" id="widget-player-stats" data-widget="player-stats">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-player-stats" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      
+      <!-- Hero info header -->
+      <div class="hero-header">
+        <div class="hero-avatar-wrapper">
+          <img id="hero-img" src="https://cdn.cloudflare.steamstatic.com/apps/dota2/images/dota_react/heroes/juggernaut.png" alt="Hero Portrait" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'64\' height=\'36\' viewBox=\'0 0 64 36\'><rect width=\'64\' height=\'36\' fill=\'%231a222d\'/><text x=\'32\' y=\'22\' fill=\'%238b9bb4\' font-size=\'10\' text-anchor=\'middle\'>HERO</text></svg>'">
+          <span class="hero-level" id="hero-level">Lv 1</span>
+        </div>
+        <div class="hero-meta">
+          <span class="player-name" id="player-name">Aguardando jogador...</span>
+          <span class="hero-name" id="hero-name">Herói</span>
+        </div>
+        <div class="networth-badge">
+          <span class="nw-icon">💰</span>
+          <span class="nw-val" id="player-networth">0 NW</span>
+        </div>
+      </div>
+
+      <!-- KDA Block -->
+      <div class="stat-card kda-card">
+        <div class="stat-title">K / D / A</div>
+        <div class="kda-display">
+          <span class="stat-val kills" id="stat-kills">0</span>
+          <span class="stat-divider">/</span>
+          <span class="stat-val deaths" id="stat-deaths">0</span>
+          <span class="stat-divider">/</span>
+          <span class="stat-val assists" id="stat-assists">0</span>
+        </div>
+        <div class="kda-ratio" id="stat-kda-ratio">KDA: 0.00</div>
+      </div>
+
+      <!-- Stats Grid: GPM, XPM, Last Hits, Denies -->
+      <div class="stats-grid">
+        <div class="stat-box gpm-box">
+          <span class="stat-box-label">GPM</span>
+          <span class="stat-box-val" id="stat-gpm">0</span>
+        </div>
+        <div class="stat-box xpm-box">
+          <span class="stat-box-label">XPM</span>
+          <span class="stat-box-val" id="stat-xpm">0</span>
+        </div>
+        <div class="stat-box lh-box">
+          <span class="stat-box-label">LAST HITS</span>
+          <span class="stat-box-val" id="stat-lh">0</span>
+        </div>
+        <div class="stat-box dn-box">
+          <span class="stat-box-label">DENIES</span>
+          <span class="stat-box-val" id="stat-dn">0</span>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 3. LEFT WIDGET: Temporizadores de Objetivos (Roshan & Tormentor) -->
+    <section class="draggable-widget in-game-widget objectives-widget" id="widget-objectives" data-widget="objectives">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-objectives" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      <div class="objectives-title">
+        <span class="dot-indicator"></span>
+        <span>TEMPORIZADORES DE OBJETIVOS</span>
+      </div>
+
+      <!-- Roshan Panel -->
+      <div class="timer-panel roshan-panel">
+        <div class="timer-panel-header">
+          <div class="objective-info">
+            <span class="obj-icon">👹</span>
+            <div>
+              <div class="obj-name">ROSHAN <span class="hotkey-badge" title="Atalho global para acionar">Ctrl+Shift+R</span></div>
+              <div class="obj-status" id="roshan-status-text">STATUS: VIVO</div>
+            </div>
+          </div>
+          <div class="timer-actions">
+            <button id="btn-roshan-death" class="btn-action btn-danger" title="Registrar morte do Roshan (Ctrl+Shift+R)">Abater</button>
+            <button id="btn-roshan-reset" class="btn-action btn-ghost" title="Resetar temporizador">↺</button>
+          </div>
+        </div>
+
+        <div class="timer-details" id="roshan-details">
+          <div class="timer-row">
+            <span class="timer-desc">Aegis (5m):</span>
+            <span class="timer-time" id="roshan-aegis-time">--:--</span>
+          </div>
+          <div class="timer-row">
+            <span class="timer-desc">Respawn Mín (8m):</span>
+            <span class="timer-time" id="roshan-min-time">--:--</span>
+          </div>
+          <div class="timer-row">
+            <span class="timer-desc">Respawn Máx (11m):</span>
+            <span class="timer-time" id="roshan-max-time">--:--</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar roshan-bar" id="roshan-progress"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tormentor Panel -->
+      <div class="timer-panel tormentor-panel">
+        <div class="timer-panel-header">
+          <div class="objective-info">
+            <span class="obj-icon">💠</span>
+            <div>
+              <div class="obj-name">TORMENTOR <span class="tag-time">(15:00)</span></div>
+              <div class="obj-status" id="tormentor-status-text">Aguardando 15:00</div>
+            </div>
+          </div>
+          <div class="timer-actions">
+            <button id="btn-tormentor-death" class="btn-action btn-primary" title="Registrar morte do Tormentor (Respawn 10m)">Abater</button>
+            <button id="btn-tormentor-reset" class="btn-action btn-ghost" title="Resetar temporizador">↺</button>
+          </div>
+        </div>
+
+        <div class="timer-details" id="tormentor-details">
+          <div class="timer-row">
+            <span class="timer-desc" id="tormentor-timer-label">Primeiro Spawn (15:00):</span>
+            <span class="timer-time" id="tormentor-time-left">15:00</span>
+          </div>
+          <div class="progress-bar-container">
+            <div class="progress-bar tormentor-bar" id="tormentor-progress"></div>
+          </div>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- 4. TACTICAL MODULE: Monitor de Farm & Timings vs. Immortal -->
+    <section class="draggable-widget in-game-widget farm-monitor-widget" id="widget-farm-monitor" data-widget="farm-monitor">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-farm-monitor" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      
+      <div class="farm-header">
+        <div class="farm-title">
+          <span>📊</span>
+          <span>FARM & TIMINGS VS. IMMORTAL</span>
+        </div>
+        <!-- Alternar perfil entre Offlane/Core e Suporte -->
+        <button id="btn-farm-profile" class="btn-profile-toggle" title="Clique para alternar perfil de farm">
+          Perfil: <strong id="farm-profile-name">Offlane/Core</strong>
+        </button>
+      </div>
+
+      <!-- Status de Alerta de Farm -->
+      <div class="farm-alert-box" id="farm-alert-box">
+        <div class="farm-alert-badge" id="farm-alert-badge">✔ Farm na Meta</div>
+        <div class="farm-meta-details" id="farm-meta-details">Meta aos 00:00: 0 LH | 0 NW</div>
+      </div>
+
+      <!-- Barra de Comparação Visual -->
+      <div class="farm-compare-row">
+        <div class="compare-item">
+          <span class="compare-label">LAST HITS</span>
+          <div class="compare-values">
+            <span class="current-val" id="farm-current-lh">0</span>
+            <span class="target-val" id="farm-target-lh">/ 0 (Immortal)</span>
+          </div>
+        </div>
+        <div class="compare-item">
+          <span class="compare-label">NET WORTH</span>
+          <div class="compare-values">
+            <span class="current-val" id="farm-current-nw">0</span>
+            <span class="target-val" id="farm-target-nw">/ 0 (Immortal)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timings de Itens Principais (Blink, BKB, Aghanim, etc) -->
+      <div class="item-timings-container">
+        <div class="timings-header">TIMINGS DE ITENS CHAVE:</div>
+        <div class="timings-list" id="item-timings-list">
+          <div class="timing-empty">Aguardando itens da build...</div>
+        </div>
+      </div>
+
+      <!-- Itens Populares OpenDota Preview -->
+      <div class="opendota-popular-items" id="opendota-popular-items">
+        <span class="popular-title">💡 Populares no OpenDota:</span>
+        <div class="popular-icons" id="popular-items-icons">
+          <!-- Carregado dinamicamente -->
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. TACTICAL MODULE: Sugestão de Skill Build em Tempo Real -->
+    <div class="draggable-widget in-game-widget skill-build-widget" id="widget-skill-build" data-widget="skill-build">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-skill-build" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      
+      <div class="skill-prompt-banner" id="skill-prompt-banner">
+        <div class="skill-prompt-pulse">⭐</div>
+        <div class="skill-prompt-info">
+          <div class="skill-prompt-title">PONTO DE HABILIDADE DISPONÍVEL!</div>
+          <div class="skill-prompt-action" id="skill-recommended-text">Recomendação: Carregando...</div>
+        </div>
+        <div class="skill-key-badge" id="skill-recommended-key">Q</div>
+      </div>
+    </div>
+
+    <!-- 6. TACTICAL MODULE: Widget de Counter-Pick para Fase de Draft -->
+    <section class="draggable-widget draft-widget" id="widget-draft-counters" data-widget="draft-counters">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-draft-counters" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+
+      <div class="draft-header">
+        <div class="draft-title">
+          <span>🎭</span>
+          <span>COUNTER-PICKS (OPENDOTA DRAFT)</span>
+        </div>
+        <button id="btn-clear-draft" class="btn-ghost" title="Limpar inimigos selecionados">Limpar</button>
+      </div>
+
+      <div class="draft-search-row">
+        <input type="text" id="draft-hero-search" placeholder="Buscar herói inimigo (ex: Pudge, PA)..." autocomplete="off">
+        <div class="draft-search-results hidden" id="draft-search-results"></div>
+      </div>
+
+      <!-- Inimigos Selecionados (Até 5) -->
+      <div class="enemy-picked-row">
+        <span class="enemy-picked-label">Inimigos:</span>
+        <div class="enemy-slots" id="enemy-slots">
+          <div class="enemy-slot empty" title="Slot vazio">+</div>
+          <div class="enemy-slot empty" title="Slot vazio">+</div>
+          <div class="enemy-slot empty" title="Slot vazio">+</div>
+          <div class="enemy-slot empty" title="Slot vazio">+</div>
+          <div class="enemy-slot empty" title="Slot vazio">+</div>
+        </div>
+      </div>
+
+      <!-- Sugestões de Melhores Counter-Picks -->
+      <div class="counter-suggestions-container">
+        <div class="suggestions-header">MELHORES ESCOLHAS RECOMENDADAS:</div>
+        <div class="counter-list" id="counter-list">
+          <div class="counter-placeholder">Selecione heróis inimigos acima para calcular os melhores counter-picks pela API do OpenDota.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TEST & CONTROLS TOOLBAR (Draggable & Resizable) -->
+    <div class="draggable-widget streamer-toolbar" id="streamer-toolbar" data-widget="toolbar">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="streamer-toolbar" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      <span class="toolbar-hint">Controles:</span>
+      <button id="btn-test-sim" class="btn-tool">🧪 Simular Jogo</button>
+      <button id="btn-test-draft" class="btn-tool">🎭 Simular Draft</button>
+      <button id="btn-toggle-mode" class="btn-tool btn-primary-tool">⌨️ Ctrl+Shift+E</button>
+      <button id="btn-toggle-toolbar" class="btn-tool" title="Ocultar barra">✕</button>
+    </div>
+
+    <!-- FLOATING SCALE TOOLTIP -->
+    <div id="scale-tooltip" class="scale-tooltip hidden">100%</div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+{
+  "name": "dota2-electron-overlay",
+  "version": "1.0.0",
+  "description": "Overlay independente de Dota 2 com transparência nativa, click-through e Electron",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "app": "electron .",
+    "server": "node server.js"
+  },
+  "keywords": [
+    "dota2",
+    "gsi",
+    "electron",
+    "overlay",
+    "transparent",
+    "clickthrough"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "electron": "^45.4.1",
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
