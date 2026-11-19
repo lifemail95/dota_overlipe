@@ -1,47 +1,52 @@
 @echo off
-title Enviar Overlay para o GitHub
+title Enviar Overlay para https://github.com/lifemail95/dota_overlipe
 cd /d "%~dp0"
 
 echo ========================================================
-echo       Publicar / Atualizar Overlay no GitHub
+echo       Publicar Overlay em lifemail95/dota_overlipe
 echo ========================================================
 echo.
 
 set "GIT_CMD=C:\Users\felip\AppData\Local\Programs\MinGit\cmd\git.exe"
-if not exist "%GIT_CMD%" (
-    set "GIT_CMD=git"
+set "GH_CMD=C:\Users\felip\AppData\Local\Programs\gh\gh.exe"
+
+"%GIT_CMD%" remote set-url origin "https://github.com/lifemail95/dota_overlipe.git" 2>nul
+if %errorlevel% neq 0 (
+    "%GIT_CMD%" remote add origin "https://github.com/lifemail95/dota_overlipe.git" 2>nul
 )
 
-"%GIT_CMD%" remote get-url origin >nul 2>nul
+echo [1/3] Verificando autenticacao com o GitHub...
+"%GH_CMD%" auth status >nul 2>nul
 if %errorlevel% neq 0 (
-    echo [PASSO 1] Voce ainda nao vinculou o link do seu repositorio GitHub.
     echo.
-    echo Exemplo de link: https://github.com/SEU_USUARIO/SEU_REPOSITORIO.git
+    echo [ATENCAO] O GitHub precisa da sua autorizacao no navegador.
+    echo Uma aba no navegador sera aberta com um codigo de confirmacao.
     echo.
-    set /p REPO_URL="Cole o link do seu repositorio do GitHub e aperte Enter: "
-    if not defined REPO_URL (
-        echo [ERRO] Nenhum link informado. Encerrando...
-        pause
-        exit /b
-    )
-    "%GIT_CMD%" remote add origin "%REPO_URL%"
-    echo [SUCESSO] Repositorio remoto vinculado!
+    "%GH_CMD%" auth login --web -h github.com -p https
+    "%GH_CMD%" auth setup-git
+) else (
+    "%GH_CMD%" auth setup-git
 )
 
 echo.
-echo [PASSO 2] Enviando arquivos para a branch main...
+echo [2/3] Preparando arquivos e commit...
+"%GIT_CMD%" branch -M main
 "%GIT_CMD%" add .
-"%GIT_CMD%" commit -m "update: atualizacoes no overlay tatico" >nul 2>nul
+"%GIT_CMD%" commit -m "feat: overlay tatico dota 2 com electron, gsi e opendota" >nul 2>nul
+
+echo.
+echo [3/3] Enviando para https://github.com/lifemail95/dota_overlipe...
 "%GIT_CMD%" push -u origin main
 
 if %errorlevel% equ 0 (
     echo.
     echo ========================================================
-    echo  [SUCESSO] Projeto hospedado no GitHub com sucesso!
+    echo  [SUCESSO] Projeto publicado com sucesso no seu GitHub!
+    echo  Acesse em: https://github.com/lifemail95/dota_overlipe
     echo ========================================================
 ) else (
     echo.
-    echo [INFO] Se foi solicitada autenticacao, faca o login na janela do navegador.
+    echo [ERRO] Ocorreu uma falha no envio. Verifique a conexao e tente novamente.
 )
 
 pause
