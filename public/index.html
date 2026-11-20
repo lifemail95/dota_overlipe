@@ -36,6 +36,7 @@
           <button class="widget-chip active" id="chip-player-stats" data-widget-target="widget-player-stats"><span class="chip-status">✔</span> ⚔️ KDA & Herói</button>
           <button class="widget-chip active" id="chip-objectives" data-widget-target="widget-objectives"><span class="chip-status">✔</span> 👹 Objetivos</button>
           <button class="widget-chip active" id="chip-farm-monitor" data-widget-target="widget-farm-monitor"><span class="chip-status">✔</span> 📊 Farm vs Immortal</button>
+          <button class="widget-chip active" id="chip-stack-pull" data-widget-target="widget-stack-pull"><span class="chip-status">✔</span> 🌲 Stacks & Pulls</button>
           <button class="widget-chip active" id="chip-skill-build" data-widget-target="widget-skill-build"><span class="chip-status">✔</span> ⭐ Skill Build</button>
           <button class="widget-chip active" id="chip-draft-counters" data-widget-target="widget-draft-counters"><span class="chip-status">✔</span> 🎭 Draft Counters</button>
           <button class="widget-chip active" id="chip-toolbar" data-widget-target="streamer-toolbar"><span class="chip-status">✔</span> 🛠️ Controles</button>
@@ -210,19 +211,16 @@
           <span>📊</span>
           <span>FARM & TIMINGS VS. IMMORTAL</span>
         </div>
-        <!-- Alternar perfil entre Offlane/Core e Suporte -->
         <button id="btn-farm-profile" class="btn-profile-toggle" title="Clique para alternar perfil de farm">
           Perfil: <strong id="farm-profile-name">Offlane/Core</strong>
         </button>
       </div>
 
-      <!-- Status de Alerta de Farm -->
       <div class="farm-alert-box" id="farm-alert-box">
         <div class="farm-alert-badge" id="farm-alert-badge">✔ Farm na Meta</div>
         <div class="farm-meta-details" id="farm-meta-details">Meta aos 00:00: 0 LH | 0 NW</div>
       </div>
 
-      <!-- Barra de Comparação Visual -->
       <div class="farm-compare-row">
         <div class="compare-item">
           <span class="compare-label">LAST HITS</span>
@@ -240,7 +238,6 @@
         </div>
       </div>
 
-      <!-- Timings de Itens Principais (Blink, BKB, Aghanim, etc) -->
       <div class="item-timings-container">
         <div class="timings-header">TIMINGS DE ITENS CHAVE:</div>
         <div class="timings-list" id="item-timings-list">
@@ -248,16 +245,71 @@
         </div>
       </div>
 
-      <!-- Itens Populares OpenDota Preview -->
       <div class="opendota-popular-items" id="opendota-popular-items">
         <span class="popular-title">💡 Populares no OpenDota:</span>
-        <div class="popular-icons" id="popular-items-icons">
-          <!-- Carregado dinamicamente -->
+        <div class="popular-icons" id="popular-items-icons"></div>
+      </div>
+    </section>
+
+    <!-- 5. TACTICAL MODULE: Lembrete de Stacks e Pulls nos Acampamentos -->
+    <section class="draggable-widget in-game-widget stack-pull-widget" id="widget-stack-pull" data-widget="stack-pull">
+      <div class="drag-handle-hint">⋮⋮ Mover</div>
+      <button class="widget-remove-btn" data-target="widget-stack-pull" title="Retirar este painel">✕</button>
+      <div class="widget-resize-handle" title="Arraste para redimensionar (escala) | Duplo clique para 100%">◢</div>
+      
+      <div class="stack-pull-header">
+        <div class="stack-pull-title">
+          <span>🌲</span>
+          <span>STACKS & PULLS</span>
+        </div>
+        <button id="btn-stack-voice" class="btn-stack-voice" title="Ativar/Desativar narração por voz de Stacks">🔊 Voz: ON</button>
+      </div>
+
+      <!-- Banner de Ação em Tempo Real -->
+      <div class="stack-action-banner" id="stack-action-banner">
+        <div class="stack-status-badge" id="stack-status-badge">PRÓXIMO STACK</div>
+        <div class="stack-action-main" id="stack-action-main">Stack em :53 - :55</div>
+        <div class="stack-action-sub" id="stack-action-sub">Faltam 00s para a janela</div>
+      </div>
+
+      <!-- Linha do Tempo / Barra de Progresso do Minuto Atual (0 a 60s) -->
+      <div class="stack-timeline-wrap">
+        <div class="stack-timeline-track">
+          <div class="stack-timeline-fill" id="stack-timeline-fill"></div>
+          <div class="stack-pin pin-pull" style="left: 25%" title="Pull da Lane (:15)"></div>
+          <div class="stack-pin pin-prep" style="left: 75%" title="Preparação (:45)"></div>
+          <div class="stack-pin pin-stack" style="left: 88%" title="Stack Agora (:53-:55)"></div>
+        </div>
+        <div class="stack-timeline-labels">
+          <span>:00 Spawn</span>
+          <span style="color: #ffd32a;">:15 Pull</span>
+          <span style="color: #ff9f43;">:45 Prep</span>
+          <span style="color: #00d2d3; font-weight: 800;">:53 STACK</span>
+        </div>
+      </div>
+
+      <!-- Dicas de Timings Rápidos -->
+      <div class="stack-tips-grid">
+        <div class="stack-tip-card">
+          <span class="tip-camp">Acampamentos (Stack):</span>
+          <span class="tip-val highlight-cyan">:53 - :55</span>
+        </div>
+        <div class="stack-tip-card">
+          <span class="tip-camp">Small Camp (Pull Lane):</span>
+          <span class="tip-val highlight-gold">:15 e :45</span>
+        </div>
+        <div class="stack-tip-card">
+          <span class="tip-camp">Hard Camp (Half-Pull):</span>
+          <span class="tip-val highlight-purple">:25 e :55</span>
+        </div>
+        <div class="stack-tip-card">
+          <span class="tip-camp">Spawn dos Neutros:</span>
+          <span class="tip-val">:00 todo min</span>
         </div>
       </div>
     </section>
 
-    <!-- 5. TACTICAL MODULE: Sugestão de Skill Build em Tempo Real -->
+    <!-- 6. TACTICAL MODULE: Sugestão de Skill Build em Tempo Real -->
     <div class="draggable-widget in-game-widget skill-build-widget" id="widget-skill-build" data-widget="skill-build">
       <div class="drag-handle-hint">⋮⋮ Mover</div>
       <button class="widget-remove-btn" data-target="widget-skill-build" title="Retirar este painel">✕</button>
@@ -273,7 +325,7 @@
       </div>
     </div>
 
-    <!-- 6. TACTICAL MODULE: Widget de Counter-Pick para Fase de Draft -->
+    <!-- 7. TACTICAL MODULE: Widget de Counter-Pick para Fase de Draft -->
     <section class="draggable-widget draft-widget" id="widget-draft-counters" data-widget="draft-counters">
       <div class="drag-handle-hint">⋮⋮ Mover</div>
       <button class="widget-remove-btn" data-target="widget-draft-counters" title="Retirar este painel">✕</button>
@@ -292,7 +344,6 @@
         <div class="draft-search-results hidden" id="draft-search-results"></div>
       </div>
 
-      <!-- Inimigos Selecionados (Até 5) -->
       <div class="enemy-picked-row">
         <span class="enemy-picked-label">Inimigos:</span>
         <div class="enemy-slots" id="enemy-slots">
@@ -304,7 +355,6 @@
         </div>
       </div>
 
-      <!-- Sugestões de Melhores Counter-Picks -->
       <div class="counter-suggestions-container">
         <div class="suggestions-header">MELHORES ESCOLHAS RECOMENDADAS:</div>
         <div class="counter-list" id="counter-list">

@@ -659,6 +659,99 @@ function renderItemTimingsList() {
 }
 
 // ============================================================
+// MÓDULO 7: LEMBRETE DE STACKS & PULLS NOS ACAMPAMENTOS
+// ============================================================
+const widgetStackPull = document.getElementById('widget-stack-pull');
+const btnStackVoice = document.getElementById('btn-stack-voice');
+const elStackActionBanner = document.getElementById('stack-action-banner');
+const elStackStatusBadge = document.getElementById('stack-status-badge');
+const elStackActionMain = document.getElementById('stack-action-main');
+const elStackActionSub = document.getElementById('stack-action-sub');
+const elStackTimelineFill = document.getElementById('stack-timeline-fill');
+
+let stackVoiceEnabled = localStorage.getItem('dota_overlay_stack_voice') !== 'false';
+let lastAnnouncedStackMin = -1;
+let lastAnnouncedPrepMin = -1;
+
+function updateStackVoiceButton() {
+  if (btnStackVoice) {
+    btnStackVoice.textContent = stackVoiceEnabled ? '🔊 Voz: ON' : '🔇 Voz: OFF';
+    btnStackVoice.style.color = stackVoiceEnabled ? '#2ed573' : '#ff4757';
+  }
+}
+
+if (btnStackVoice) {
+  btnStackVoice.addEventListener('click', () => {
+    stackVoiceEnabled = !stackVoiceEnabled;
+    localStorage.setItem('dota_overlay_stack_voice', String(stackVoiceEnabled));
+    updateStackVoiceButton();
+    if (stackVoiceEnabled) speakVoice('Avisos de stack ativados.');
+  });
+}
+updateStackVoiceButton();
+
+function updateStackPullTimer(clockSeconds) {
+  if (clockSeconds < 0) {
+    if (elStackTimelineFill) elStackTimelineFill.style.width = '0%';
+    if (elStackStatusBadge) elStackStatusBadge.textContent = 'PRÉ-JOGO';
+    if (elStackActionMain) elStackActionMain.textContent = 'Neutros nascem aos 01:00';
+    if (elStackActionSub) elStackActionSub.textContent = 'Aguarde o início da partida';
+    if (elStackActionBanner) elStackActionBanner.className = 'stack-action-banner';
+    return;
+  }
+
+  const currentMin = Math.floor(clockSeconds / 60);
+  const sec = ((clockSeconds % 60) + 60) % 60;
+
+  // Barra de progresso do minuto atual (0% a 100%)
+  if (elStackTimelineFill) {
+    const pct = (sec / 60) * 100;
+    elStackTimelineFill.style.width = `${pct}%`;
+  }
+
+  // 1. :52s a :56s -> STACK AGORA!
+  if (sec >= 52 && sec <= 56) {
+    if (elStackActionBanner) elStackActionBanner.className = 'stack-action-banner action';
+    if (elStackStatusBadge) elStackStatusBadge.textContent = '🔥 STACK AGORA (:53 - :55)';
+    if (elStackActionMain) elStackActionMain.textContent = 'BATA E CORRA PARA FORA!';
+    if (elStackActionSub) elStackActionSub.textContent = 'Puxe os creeps para fora da caixa de spawn';
+
+    if (sec >= 53 && stackVoiceEnabled && lastAnnouncedStackMin !== currentMin && clockSeconds >= 50) {
+      lastAnnouncedStackMin = currentMin;
+      speakVoice('Stack agora! Puxe o acampamento.');
+    }
+  }
+  // 2. :43s a :51s -> PREPARAÇÃO DE STACK (:45)
+  else if (sec >= 43 && sec <= 51) {
+    if (elStackActionBanner) elStackActionBanner.className = 'stack-action-banner prep';
+    if (elStackStatusBadge) elStackStatusBadge.textContent = 'PREPARAR STACK (:45)';
+    if (elStackActionMain) elStackActionMain.textContent = 'Posicione-se no Acampamento';
+    const remainingToStack = 53 - sec;
+    if (elStackActionSub) elStackActionSub.textContent = `Faltam ${remainingToStack}s para bater (:53s)`;
+
+    if (sec >= 45 && stackVoiceEnabled && lastAnnouncedPrepMin !== currentMin && clockSeconds >= 40) {
+      lastAnnouncedPrepMin = currentMin;
+      speakVoice('Atenção, prepare o stack aos 53.');
+    }
+  }
+  // 3. :12s a :18s -> PULL DA LANE NA WAVE (:15)
+  else if (sec >= 12 && sec <= 18) {
+    if (elStackActionBanner) elStackActionBanner.className = 'stack-action-banner pull';
+    if (elStackStatusBadge) elStackStatusBadge.textContent = 'PULL DA LANE (:15)';
+    if (elStackActionMain) elStackActionMain.textContent = 'Puxe o Small Camp na Wave!';
+    if (elStackActionSub) elStackActionSub.textContent = 'Equilibre o creep equilibrium da lane';
+  }
+  // 4. Intervalo normal / Contagem regressiva
+  else {
+    if (elStackActionBanner) elStackActionBanner.className = 'stack-action-banner';
+    if (elStackStatusBadge) elStackStatusBadge.textContent = 'PRÓXIMO STACK AOS :53';
+    if (elStackActionMain) elStackActionMain.textContent = 'Stack em :53 - :55';
+    const waitSec = sec < 53 ? 53 - sec : (60 - sec + 53);
+    if (elStackActionSub) elStackActionSub.textContent = `Faltam ${waitSec}s para a janela de stack`;
+  }
+}
+
+// ============================================================
 // MÓDULO 3: SUGESTÃO DE SKILL BUILD EM TEMPO REAL
 // ============================================================
 function updateSkillBuildRecommendation(heroData, abilitiesData) {
@@ -928,8 +1021,9 @@ function updateMapData(map) {
     lastServerTick = Date.now();
     elGameClock.textContent = formatGameTime(currentClockTime);
 
-    // Checagem de voz do Tormentor
+    // Checagem de voz do Tormentor e Alertas de Stack/Pull
     checkVoiceAlerts(currentClockTime);
+    updateStackPullTimer(currentClockTime);
   }
 
   if (map.daytime !== undefined) {
@@ -1133,7 +1227,12 @@ setInterval(() => {
       const liveClock = currentClockTime + elapsedSinceLastTick;
       elGameClock.textContent = formatGameTime(liveClock);
       checkVoiceAlerts(liveClock);
+      updateStackPullTimer(liveClock);
+    } else {
+      updateStackPullTimer(currentClockTime);
     }
+  } else {
+    updateStackPullTimer(currentClockTime);
   }
   updateTimerVisuals();
   updateFarmMonitor();

@@ -40,6 +40,15 @@ Overlay tático de alta performance para Dota 2 com visual estilo transmissão d
 - **Persistência**: posição (top/left), escala (tamanho) e visibilidade de cada widget são salvos automaticamente no `localStorage`.
 - **Modo Edição (`Ctrl + Shift + E`)**: permite arrastar, redimensionar pelo puxador `◢` e retirar qualquer widget pelo `✕`.
 
+### 7. ⏱️ Lembrete de Stacks & Pulls nos Acampamentos
+- **Linha do tempo contínua de 60s**: monitora os ciclos de spawn dos neutros (a cada minuto a partir de 01:00).
+- **Alertas com código de cores e avisos sonoros**:
+  - **Pull da Lane (:15s)**: aviso visual para puxar o Small Camp e equilibrar a lane na wave aliada.
+  - **Preparação de Stack (:45s)**: alerta prévio com 8s de antecedência (*"Atenção, prepare o stack aos 53"*).
+  - **Stack Agora! (:53s - :55s)**: indicação de ação imediata com animação pulsante em chamas e voz (*"Stack agora! Puxe o acampamento"*).
+- **Guia rápido de acampamentos**: tempos de ataque e direção de corrida para Small, Medium, Hard e Ancient Camp.
+- **Controle individual de voz**: botão `🔔 Avisos: ON/OFF` direto no cabeçalho do widget.
+
 ---
 
 ## ⌨️ Atalhos Globais

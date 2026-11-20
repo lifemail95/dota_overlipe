@@ -988,7 +988,218 @@ body.edit-mode .drag-handle-hint {
 }
 
 /* ============================================================
-   5. SKILL BUILD IN REAL-TIME WIDGET
+   5. STACKS & PULLS WIDGET (LEMBRETE DE ACAMPAMENTOS)
+============================================================ */
+.stack-pull-widget {
+  position: absolute;
+  top: 360px;
+  left: 28px;
+  width: 380px;
+  background: linear-gradient(145deg, rgba(14, 18, 25, 0.95), rgba(20, 27, 38, 0.90));
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-left: 3px solid #2ed573;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.6);
+}
+
+.stack-pull-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 10px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  margin-bottom: 10px;
+}
+
+.stack-pull-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: #ced6e0;
+}
+
+.btn-stack-voice {
+  cursor: pointer;
+  background: rgba(46, 213, 115, 0.15);
+  border: 1px solid rgba(46, 213, 115, 0.4);
+  color: #2ed573;
+  font-size: 12px;
+  font-weight: 700;
+  font-family: 'Rajdhani', sans-serif;
+  padding: 3px 8px;
+  border-radius: 6px;
+  transition: all 0.2s;
+}
+
+.btn-stack-voice:hover {
+  background: rgba(46, 213, 115, 0.3);
+}
+
+.stack-action-banner {
+  background: rgba(8, 11, 16, 0.7);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 10px 14px;
+  margin-bottom: 12px;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.stack-status-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  padding: 3px 10px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  background: rgba(0, 210, 211, 0.2);
+  border: 1px solid rgba(0, 210, 211, 0.5);
+  color: #00d2d3;
+  margin-bottom: 4px;
+}
+
+.stack-action-main {
+  font-family: 'Teko', sans-serif;
+  font-size: 28px;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 1px;
+}
+
+.stack-action-sub {
+  font-size: 12px;
+  color: #a4b0be;
+  font-weight: 700;
+  margin-top: 2px;
+}
+
+.stack-action-banner.prep {
+  border-color: #ffd32a;
+  background: rgba(255, 211, 42, 0.15);
+  box-shadow: 0 0 16px rgba(255, 211, 42, 0.3);
+}
+.stack-action-banner.prep .stack-status-badge {
+  background: rgba(255, 211, 42, 0.3);
+  border-color: #ffd32a;
+  color: #ffd32a;
+}
+.stack-action-banner.prep .stack-action-main {
+  color: #ffd32a;
+}
+
+.stack-action-banner.action {
+  border-color: #2ed573;
+  background: rgba(46, 213, 115, 0.22);
+  box-shadow: 0 0 20px rgba(46, 213, 115, 0.5);
+  animation: pulse 1s infinite;
+}
+.stack-action-banner.action .stack-status-badge {
+  background: rgba(46, 213, 115, 0.4);
+  border-color: #2ed573;
+  color: #ffffff;
+}
+.stack-action-banner.action .stack-action-main {
+  color: #2ed573;
+  text-shadow: 0 0 10px rgba(46, 213, 115, 0.8);
+}
+
+.stack-action-banner.pull {
+  border-color: #ffd32a;
+  background: rgba(255, 211, 42, 0.2);
+  box-shadow: 0 0 16px rgba(255, 211, 42, 0.4);
+}
+.stack-action-banner.pull .stack-status-badge {
+  background: rgba(255, 211, 42, 0.3);
+  border-color: #ffd32a;
+  color: #ffd32a;
+}
+.stack-action-banner.pull .stack-action-main {
+  color: #ffd32a;
+}
+
+.stack-timeline-wrap {
+  margin-bottom: 12px;
+}
+
+.stack-timeline-track {
+  position: relative;
+  width: 100%;
+  height: 8px;
+  background: rgba(0, 0, 0, 0.5);
+  border-radius: 4px;
+  overflow: visible;
+  margin-bottom: 6px;
+}
+
+.stack-timeline-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #2ed573, #00d2d3);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.stack-pin {
+  position: absolute;
+  top: -3px;
+  width: 3px;
+  height: 14px;
+  border-radius: 2px;
+  transform: translateX(-50%);
+}
+
+.pin-pull { background: #ffd32a; }
+.pin-prep { background: #ff9f43; }
+.pin-stack { background: #00d2d3; width: 4px; box-shadow: 0 0 6px #00d2d3; }
+
+.stack-timeline-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  font-weight: 700;
+  color: #747d8c;
+}
+
+.stack-tips-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.stack-tip-card {
+  background: rgba(8, 11, 16, 0.6);
+  border-radius: 6px;
+  padding: 6px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-direction: column;
+}
+
+.tip-camp {
+  font-size: 11px;
+  font-weight: 700;
+  color: #a4b0be;
+}
+
+.tip-val {
+  font-size: 13px;
+  font-weight: 800;
+  color: #ffffff;
+}
+
+.highlight-cyan { color: #00d2d3 !important; }
+.highlight-gold { color: #ffd32a !important; }
+.highlight-purple { color: #9b59b6 !important; }
+
+/* ============================================================
+   6. SKILL BUILD IN REAL-TIME WIDGET
 ============================================================ */
 .skill-build-widget {
   position: absolute;
