@@ -398,7 +398,8 @@ function initDraggables() {
       const onMouseMove = (moveEvent) => {
         const currDist = Math.hypot(moveEvent.clientX - rect.left, moveEvent.clientY - rect.top);
         let newScale = startScale * (currDist / startDist);
-        newScale = Math.max(0.4, Math.min(2.2, Math.round(newScale * 100) / 100));
+        // Limitar escala com limite minimo seguro (70% a 250%) para nao prejudicar a legibilidade das fontes
+        newScale = Math.max(0.70, Math.min(2.5, Math.round(newScale * 100) / 100));
 
         widget.dataset.scale = newScale;
         widget.style.transform = `scale(${newScale})`;
